@@ -3,6 +3,7 @@ from db import db, sql_uri
 from routes.endpoint_routes import endpoint_bp
 from routes.client_route import client_bp
 from routes.service_route import service_bp
+from routes.main_route import main_bp
 from token_validater import generate_secret_key
 
 def client_app():
@@ -19,6 +20,7 @@ def client_app():
     app.register_blueprint(client_bp)
     app.register_blueprint(endpoint_bp)
     app.register_blueprint(service_bp)
+    app.register_blueprint(main_bp)
     
     return app
 def gateway_app():
@@ -26,13 +28,16 @@ def gateway_app():
     app_gateway = Flask(__name__)
     app_gateway.config['SECRET_KEY'] = generate_secret_key()
     app_gateway.config['SQLALCHEMY_DATABASE_URI'] = sql_uri
+    db.init_app(app_gateway)
     # Replace 'username', 'password', 'localhost', and 'dbname' with your PostgreSQL credentials
     app_gateway.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    app_gateway.register_blueprint(main_bp)
 
     return app_gateway
 
 app = client_app()
-app.run(debug=True)
+app.run(debug=True, port=5000)
 
 # from waitress import serve
 # import subprocess

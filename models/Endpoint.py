@@ -1,5 +1,5 @@
 from db import db
-from sqlalchemy import Table, MetaData, inspect, DateTime, func, Index
+from sqlalchemy import Table, MetaData, inspect, DateTime, func, Index, JSON,cast, String
 
 class Endpoint(db.Model):
     __tablename__ = 'endpoints'
@@ -43,6 +43,34 @@ class Endpoint(db.Model):
     
     def as_dict(self):
         return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+    
+
+    @classmethod
+    def dynamic_query(cls, filters):
+        query = cls.query
+        print(f"This is filter: {filters}")
+        for key, value in filters.items():
+            if hasattr(cls, key):
+                column = getattr(cls, key)
+                if isinstance(column.property.columns[0].type, JSON):
+                    # If column is JSON, handle filtering differently
+                    if isinstance(value, dict):
+                        # If value is a dictionary, iterate over its items for filtering
+                        for json_key, json_value in value.items():
+                            query = query.filter(func.json_extract_path_text(column, json_key) == json_value)
+                    elif isinstance(value, str):
+                        # If value is a string, check if it exists in the JSON array using ANY operator
+                        query = query.filter(cast(column, String).contains(value))
+                    else:
+                        # Handle other types as needed
+                        pass
+                else:
+                    # For non-JSON columns, apply regular filtering
+                    query = query.filter(column == value)
+        return query.all()
+
+
+    
 def endpoint_model(schema_name):
     
     # Set the schema for the table

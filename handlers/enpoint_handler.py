@@ -31,3 +31,8 @@ class EndpointHandler:
     def add_endpoint(self, data, schema_name):
         endpoint = endpoint_model(schema_name)
         return endpoint.insert(data=data)
+    
+    def get_endpont(self, schema_name, filters):
+        print(filters)
+        endpont = endpoint_model(schema_name)
+        return endpont.dynamic_query(filters=filters)

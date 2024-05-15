@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request, current_app
+from token_validater import token_required
 from handlers.service_handler import ServiceHandler
 from handlers.enpoint_handler import EndpointHandler
 from token_validater import token_required
